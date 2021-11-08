@@ -2199,7 +2199,7 @@ POST _plugins/_anomaly_detection/detectors/results/_search
 Introduced 1.2
 {: .label .label-purple }
 
-Returns the top anomalous results for a high-cardinality detector, bucketed by categorical field values.
+Returns the top anomaly results for a high-cardinality detector, bucketed by categorical field values.
 
 You can pass a `historical` boolean parameter to specify whether you want to analyze real-time or historical results.
 
@@ -2253,10 +2253,10 @@ You can specify the following options.
 
 Options | Description | Type | Required
 :--- | :--- |:--- |:--- |
-`size` |  Specify the number of top buckets you want to see. Defaults to 10, with a maximum of 10,000. | `integer` | No
-`category_field` |  Specify the set of categorical fields that you want to aggregate on. Defaults to all categorical fields for the detector. | `list` | No
+`size` |  Specify the number of top buckets that you want to see. Default is 10. The maximum number is 10,000. | `integer` | No
+`category_field` |  Specify the set of category fields that you want to aggregate on. Defaults to all category fields for the detector. | `list` | No
 `order` |  Specify `severity` (anomaly grade) or `occurrence` (number of anomalies). Default is `severity`. | `string` | No
-`task_id`  |  Specify a historical task ID for results only from that specific task. Is used only when `historical=true`, is ignored otherwise. | `string` | No
+`task_id`  |  Specify a historical task ID to see results only from that specific task. Use only when `historical=true`, otherwise the anomaly detection plugin ignores this parameter. | `string` | No
 `start_time_ms` | Specify the time to start analyzing results, in epoch milliseconds. | `long` | Yes
 `end_time_ms` |  Specify the time to end analyzing results, in epoch milliseconds. | `long` | Yes
 
