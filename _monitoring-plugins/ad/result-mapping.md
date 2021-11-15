@@ -9,7 +9,7 @@ nav_order: 6
 
 If you enabled custom result index, the anomaly detection plugin stores the results in your own index.
 
-If the anomaly detector doesn’t detect an anomaly, the result is as follows:
+If the anomaly detector doesn’t detect an anomaly, the result has the following format:
 
 ```json
 {
@@ -66,20 +66,19 @@ Field | Description
 :--- | :---
 `detector_id` | A unique ID for identifying a detector.
 `schema_version` | The mapping version of the result index.
-`data_start_time` | The anomaly detection plugin analyzes an interval of the aggregated data. For example, max or sum. data_start_time is the start of this range.
-`data_end_time` | The end of the detection range.
-`feature_data` | An array of aggregated data between the data_start_time and data_end_time. When creating a detector, you need to configure features that combine an aggregation method (e.g., average) and an index field (e.g., processing_bytes). You can also write a Painless script to generate features.
-`execution_start_time` | The actual start time of the detector. if there's a delay in indexing documents, you can set a window delay parameter that delays the plugin from processing the data. Window delay is the difference between the execution_start_time and data_start_time.
+`data_start_time` | The start of the detection range of the aggregated data.
+`data_end_time` | The end of the detection range of the aggregated data.
+`feature_data` | An array of the aggregated data points between the `data_start_time` and `data_end_time`.
+`execution_start_time` | The actual start time of the detector. This start time includes the window delay parameter that you can set to delay data collection. Window delay is the difference between the `execution_start_time` and `data_start_time`.
 `execution_end_time` | The actual end time of the detector.
-`anomaly_score` | Indicates how anomalous a data point is. The higher the score, the more anomalous the data point is.
-`anomaly_grade` | A normalized version of the anomaly_score on a scale between 0 and 1.
-`confidence` | An estimate of the probability that the reported anomaly predictions are accurate. The closer this number is to 1, the higher the accuracy of the prediction. During the probation period of a running detector, the confidence is low (< 0.9) because of exposure to limited data.
-`entity` | An entity is a combination of specific categorical fields’ values. This field contains the attributes of an entity: name is the category field and value is the field's value. In the above example, process_name is the category field and the value is one of the processes: process_3. The entity field is only present for a high-cardinality anomaly detector (where you've selected a category field).
-`model_id` | A unique ID that identifies a model. If the detector is a single-stream detector (with no categorical field), it has only one model. If the detector is an high-cardinality anomaly detector, the detector might have multiple models, one for each entity.
-`threshold` | The anomaly_score surpassing a dynamic threshold is one of the conditions to determine whether a data point is an anomaly or not. The field records the current threshold.
+`anomaly_score` | Indicates relative severity of an anomaly. The higher the score, the more anomalous a data point is.
+`anomaly_grade` | A normalized version of the `anomaly_score` on a scale between 0 and 1.
+`confidence` | The probability of the accuracy of the `anomaly_score`. The closer this number is to 1, the higher the accuracy. During the probation period of a running detector, the confidence is low (< 0.9) because of exposure to limited data.
+`entity` | An entity is a combination of specific category fields’ values. It includes the name and value of the category field. In the previous example, `process_name` is the category field and one of the processes such as `process_3` is the field's value. The `entity` field is only present for a high-cardinality detector (where you've selected a category field).
+`model_id` | A unique ID that identifies a model. If a detector is a single-stream detector (with no category field), it has only one model. If a detector is a high-cardinality detector (with one or more category fields), it might have multiple models, one for each entity.
+`threshold` | The `anomaly_score` of a data point needs to surpass a certain dynamic threshold for the data point to be classified as an anomaly. This field records the current threshold.
 
-If the anomaly detector detects an anomaly, the result is as follows:
-
+If an anomaly detector detects an anomaly, the result has the following format:
 
 ```json
 {
@@ -179,16 +178,18 @@ If the anomaly detector detects an anomaly, the result is as follows:
 }
 ```
 
-The result has the following additional fields:
+You can see the following additional fields:
 
 Field | Description
 :--- | :---
-`relevant_attribution` | The contribution of each input variable. The sum of the attributions is normalized to 1.
+`relevant_attribution` | Represents the contribution of each input variable. The sum of the attributions is normalized to 1.
 `expected_values` | The expected value for each feature.
 
-At times, the anomaly detection plugin might an anomaly that occurred in the past, even though you trigger the detector now.
-Let's say the detector sees a random mix of the triples {1, 2, 3} and {2, 4, 5} that correspond to "slow weeks" and "busy weeks" respectively. For example 1, 2, 3, 1, 2, 3, 2, 4, 5, 1, 2, 3, 2, 4, 5, ... and so on.
-If the detector comes across a pattern { 2, 2, X } and it's yet to see X, then the detector can infer that the pattern is anomalous, but it can't determine at this point which of the 2's is the cause. If X = 3, then we know it is the first 2 in that unfinished triple, and if X = 5, it is the second 2. If it's the first 2, then it's detected the anomaly late. If an detector detects an anomaly late, then the result is as follows:
+At times, the detector might detect an anomaly late.
+Let's say the detector sees a random mix of the triples {1, 2, 3} and {2, 4, 5} that correspond to `slow weeks` and `busy weeks`, respectively. For example 1, 2, 3, 1, 2, 3, 2, 4, 5, 1, 2, 3, 2, 4, 5, ... and so on.
+If the detector comes across a pattern {2, 2, X} and it's yet to see X, the detector infers that the pattern is anomalous, but it can't determine at this point which of the 2's is the cause. If X = 3, then the detector knows it's the first 2 in that unfinished triple, and if X = 5, then it's the second 2. If it's the first 2, then the detector detects the anomaly late.
+
+If a detector detects an anomaly late, the result has the following format:
 
 ```json
 {
